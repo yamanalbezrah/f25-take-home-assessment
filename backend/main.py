@@ -32,36 +32,40 @@ class WeatherResponse(BaseModel):
 @app.post("/weather", response_model=WeatherResponse)
 async def create_weather_request(request: WeatherRequest):
 
-    # Fetching data from weatherstack api
+   # Step 1: Call WeatherStack API
     response = requests.get(
-        "http://api.weatherstack.com/current", params={
-        "access_key": WEATHERSTACK_API_KEY,
-        "query": request.location
+        "http://api.weatherstack.com/current",
+        params={
+            "access_key": WEATHERSTACK_API_KEY,
+            "query": request.location
         }
-    }
+    )
+    
     data = response.json()
 
-    # Error Handling
+    # Step 2: Error Handling
     if "error" in data:
-        raise HTTPException(status_code=400, detail = "Weather API request failed")
-        # Generating a unique ID for this request
-    
+        raise HTTPException(status_code=400, detail="Weather API request failed")
+
+    # Step 3: Generate unique ID
     weather_id = str(uuid.uuid4())
 
-    # Stroing the data in memory
+    # Step 4: Store the weather data in memory
     weather_storage[weather_id] = {
         "id": weather_id,
         "date": request.date,
         "location": request.location,
-        "notes":request.notes,
+        "notes": request.notes,
         "weather_data": {
-            "temperature": data["current"]["temperature],
-            "descriptiion": data["current"]["weather_description"][0],
+            "temperature": data["current"]["temperature"],
+            "description": data["current"]["weather_descriptions"][0],
             "humidity": data["current"]["humidity"],
             "wind_speed": data["current"]["wind_speed"]
-        }
+        },
         "created_at": datetime.utcnow().isoformat()
     }
+
+    # Step 5: Return the ID
     return {"id": weather_id}
 
 
