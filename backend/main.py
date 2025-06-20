@@ -19,6 +19,7 @@ app.add_middleware(
 
 # In-memory storage for weather data
 weather_storage: Dict[str, Dict[str, Any]] = {}
+WEATHERSTACK_API_KEY = "f35fb8ccfbe65bd6e5f22f4728c0d328"
 
 class WeatherRequest(BaseModel):
     date: str
@@ -30,14 +31,39 @@ class WeatherResponse(BaseModel):
 
 @app.post("/weather", response_model=WeatherResponse)
 async def create_weather_request(request: WeatherRequest):
-    """
-    You need to implement this endpoint to handle the following:
-    1. Receive form data (date, location, notes)
-    2. Calls WeatherStack API for the location
-    3. Stores combined data with unique ID in memory
-    4. Returns the ID to frontend
-    """
-    pass
+
+    # Fetching data from weatherstack api
+    response = requests.get(
+        "http://api.weatherstack.com/current", params={
+        "access_key": WEATHERSTACK_API_KEY,
+        "query": request.location
+        }
+    }
+    data = response.json()
+
+    # Error Handling
+    if "error" in data:
+        raise HTTPException(status_code=400, detail = "Weather API request failed")
+        # Generating a unique ID for this request
+    
+    weather_id = str(uuid.uuid4())
+
+    # Stroing the data in memory
+    weather_storage[weather_id] = {
+        "id": weather_id,
+        "date": request.date,
+        "location": request.location,
+        "notes":request.notes,
+        "weather_data": {
+            "temperature": data["current"]["temperature],
+            "descriptiion": data["current"]["weather_description"][0],
+            "humidity": data["current"]["humidity"],
+            "wind_speed": data["current"]["wind_speed"]
+        }
+        "created_at": datetime.utcnow().isoformat()
+    }
+    return {"id": weather_id}
+
 
 @app.get("/weather/{weather_id}")
 async def get_weather_data(weather_id: str):
