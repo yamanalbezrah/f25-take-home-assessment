@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import uvicorn
+import uuid
+import requests
+from datetime import datetime
 
 app = FastAPI(title="Weather Data System", version="1.0.0")
 
