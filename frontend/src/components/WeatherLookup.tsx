@@ -12,7 +12,7 @@ export function WeatherLookup() {
 const handleLookup = async () => {
   try {
     setError(null);
-    const response = await fetch('http://localhost:8000/weather/${id}');
+    const response = await fetch('http://localhost:8000/weather');
     if (!response.ok) {
       throw new Error("Weather data not found.")
     }
